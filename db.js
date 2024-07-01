@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const mogoURL =
-  "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.5";
+require("dotenv").config();
 
-mongoose.connect(mogoURL);
+const mongoURL = process.env.DB_URL;
+mongoose.connect(mongoURL);
 
 const db = mongoose.connection;
 

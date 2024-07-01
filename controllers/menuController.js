@@ -30,7 +30,7 @@ const getMenuByTaste = async (req, res) => {
 
 const getMenu = async (req, res) => {
   try {
-    const menuData = await Menu.findOne();
+    const menuData = await Menu.find();
     res.status(200).send(menuData);
   } catch (error) {
     res.status(500).send({ error: "Internal Server Error" });
