@@ -1,13 +1,59 @@
 const { result } = require("lodash");
 const Person = require("../models/person");
 
+const { jwtAuthMiddleware, generateToken } = require("../middlewares/jwt");
+
+const loginPerson = async (req, res) => {
+  try {
+    //Extract username and passwrd from body
+    const { username, password } = req.body;
+
+    // Find the user by username
+    const user = await Person.findOne({ username: username });
+
+    // If user does not exist or password does not match, return error
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+    // generate Token
+    const payload = {
+      id: user.id,
+      username: user.username,
+    };
+    const token = generateToken(payload);
+
+    // return Token as response
+    res.json({ token });
+  } catch (error) {
+    res.status(500), json({ message: "Internal server error" });
+  }
+};
+
+const getProfile = async (req, res) => {
+  try {
+    const userData = req.user;
+    console.log(userData, "user info");
+    const user = userData.id;
+    const userProfile = await Person.findById(user);
+    res.status(200).json(userProfile);
+  } catch (error) {
+    res.status(500), json({ message: "Internal server error" });
+  }
+};
+
 const createPerson = async (req, res) => {
   try {
     const newPerson = new Person(req.body);
     const response = await newPerson.save();
 
     console.log("Data saved");
-    res.status(200).send(response);
+    const payload = {
+      id: response.id,
+      username: response.username,
+    };
+    const token = generateToken(payload);
+    console.log(token, "Token saved");
+    res.status(200).send({ response: response, token: token });
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Internal Server Error" });
@@ -84,9 +130,11 @@ const deletePerson = async (req, res) => {
 };
 
 module.exports = {
+  loginPerson,
   createPerson,
   getPersonsByWorkType,
   getPerson,
+  getProfile,
   updatePerson,
   deletePerson,
 };
